@@ -1,11 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import Board from './components/Board';
 import Header from './components/Header';
 import { useGame } from './hooks/useGame';
 import './styles/app.css';
 
 const App: React.FC = () => {
-    const { cards, handleCardClick, isGameWon } = useGame();
+    const { cards, flipCard: handleCardClick, isWon: isGameWon, initializeGame } = useGame();
+
+    // Initialize the game with some sample values
+    useEffect(() => {
+        const initialCards = ['🌟', '🎈', '🎨', '🎭', '🎮', '🎲'];
+        initializeGame(initialCards);
+    }, [initializeGame]);
 
     return (
         <div className="app">
