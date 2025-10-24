@@ -7,10 +7,19 @@ interface Card {
   isMatched: boolean;
 }
 
-export const useGame = () => {
+interface Player {
+  id: number;
+  name: string;
+  score: number;
+  color: string;
+}
+
+export const useGame = (isMultiplayer: boolean = false, playerCount: number = 2) => {
   const [cards, setCards] = useState<Card[]>([]);
   const [flippedCards, setFlippedCards] = useState<Card[]>([]);
   const [isWon, setIsWon] = useState(false);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState(0);
 
   const initializeGame = useCallback((cardValues: string[]) => {
     const initialCards: Card[] = cardValues.flatMap((value, index) => [
@@ -20,7 +29,19 @@ export const useGame = () => {
     setCards(initialCards.sort(() => Math.random() - 0.5));
     setFlippedCards([]);
     setIsWon(false);
-  }, []);
+    setCurrentPlayer(0);
+    
+    if (isMultiplayer) {
+      const colors = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b'];
+      const initialPlayers: Player[] = Array.from({ length: playerCount }, (_, i) => ({
+        id: i,
+        name: `Player ${i + 1}`,
+        score: 0,
+        color: colors[i % colors.length]
+      }));
+      setPlayers(initialPlayers);
+    }
+  }, [isMultiplayer, playerCount]);
 
   const checkWinCondition = useCallback(() => {
     const allMatched = cards.every(card => card.isMatched);
@@ -45,7 +66,9 @@ export const useGame = () => {
   useEffect(() => {
     if (flippedCards.length === 2) {
       const [first, second] = flippedCards;
-      if (first.value === second.value) {
+      const isMatch = first.value === second.value;
+      
+      if (isMatch) {
         // Match found
         setCards(prevCards =>
           prevCards.map(card =>
@@ -54,6 +77,17 @@ export const useGame = () => {
               : card
           )
         );
+        
+        // Update score for current player if multiplayer
+        if (isMultiplayer && players.length > 0) {
+          setPlayers(prevPlayers =>
+            prevPlayers.map((player, index) =>
+              index === currentPlayer
+                ? { ...player, score: player.score + 1 }
+                : player
+            )
+          );
+        }
       }
       
       // Reset flipped cards after a delay
@@ -64,11 +98,16 @@ export const useGame = () => {
           )
         );
         setFlippedCards([]);
+        
+        // Switch to next player if no match in multiplayer mode
+        if (isMultiplayer && !isMatch && players.length > 0) {
+          setCurrentPlayer((prev) => (prev + 1) % players.length);
+        }
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [flippedCards]);
+  }, [flippedCards, isMultiplayer, players.length, currentPlayer]);
 
   useEffect(() => {
     checkWinCondition();
@@ -79,6 +118,8 @@ export const useGame = () => {
     flippedCards,
     isWon,
     initializeGame,
-    flipCard
+    flipCard,
+    players,
+    currentPlayer
   };
 };
