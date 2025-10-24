@@ -1,29 +1,24 @@
-import React, { useEffect } from 'react';
-import { useGame } from '../hooks/useGame';
-import Card from './Card';
-import './Board.css';
+import React from 'react';
 
-const Board: React.FC = () => {
-    const { cards, flipCard, checkForMatch, resetGame, isGameWon } = useGame();
+interface BoardProps {
+  cards: any[];
+  onCardClick: (id: number) => void;
+}
 
-    useEffect(() => {
-        if (isGameWon) {
-            alert('Congratulations! You have matched all the cards!');
-        }
-    }, [isGameWon]);
-
-    return (
-        <div className="board">
-            {cards.map((card) => (
-                <Card
-                    key={card.id}
-                    card={card}
-                    onClick={() => flipCard(card.id)}
-                />
-            ))}
-            {isGameWon && <button onClick={resetGame}>Play Again</button>}
+const Board: React.FC<BoardProps> = ({ cards, onCardClick }) => {
+  return (
+    <div className="grid">
+      {cards.map(card => (
+        <div
+          key={card.id}
+          className={`card ${card.isFlipped ? 'flipped' : ''} ${card.isMatched ? 'matched' : ''}`}
+          onClick={() => onCardClick(card.id)}
+        >
+          {card.isFlipped || card.isMatched ? card.value : '?'}
         </div>
-    );
+      ))}
+    </div>
+  );
 };
 
 export default Board;

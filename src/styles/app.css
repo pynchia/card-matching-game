@@ -1,3 +1,9 @@
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
 .grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
